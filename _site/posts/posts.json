@@ -1,0 +1,58 @@
+[
+  {
+    "path": "posts/2022-10-27-ggplot2attendancerate/",
+    "title": "ฝึกหัดสร้างทัศนภาพข้อมูลตามตัวอย่าง: อัตราการเข้าเรียน",
+    "description": "ผลงานการสร้างทัศนภาพข้อมูลโดยใช้ ggplot2 ตามตัวอย่าง นำเสนออัตราการเข้าเรียนของนักเรียนในแต่ละระดับการศึกษาจำแนกตามระดับชั้นและรายปี",
+    "author": [
+      {
+        "name": "Kritsadee Siriruang",
+        "url": {}
+      }
+    ],
+    "date": "2022-10-27",
+    "categories": [
+      "R",
+      "Data Visualiztion"
+    ],
+    "contents": "\r\nในบทเรียนของการใช้ package-ggplot2ในการสร้างทัศนภาพข้อมูล มีงานที่ได้รับมอบหมายเป็นแบบฝึกหัดในการสร้างทัศนภาพตามตัวอย่างที่กำหนดโดยใช้ ggplot2 ทำให้ได้เรียนรู้การผสมผสานใช้งานฟังก์ชันต่าง ๆ เพื่อสร้างชิ้นงานทัศนภาพข้อมูลที่ถูกต้อง และสวยงาม\r\nโดยจากตัวอย่างที่กำหนดเป็นการนำเสนออัตราการเข้าเรียนของนักเรียนในแต่ละระดับการศึกษาจำแนกตามระดับชั้นและรายปี มีนำเสนอโดยใช้กราฟเส้น\r\nซึ่งก่อนการสร้างทัศนภาพต้องมีการจัดกระทำข้อมูลให้พร้อมที่จะนำไปใช้ แล้วจึงสร้างทัศนภาพข้อมูล ได้ชิ้นงานดังนี้\r\n\r\n\r\nShow code\r\n\r\nlibrary(dplyr)\r\nlibrary(ggplot2)\r\nlibrary(readxl)\r\nlibrary(tidyr)\r\nlibrary(ggrepel)\r\nlibrary(rcartocolor)\r\n\r\n#นำเข้าและจัดกระทำข้อมูล\r\nwindowsFonts(\"ChulaCharasNew\" = windowsFont(\"ChulaCharasNew\"))\r\ndat<-read_excel(\"D:/2022_Study/DatVis/data/attendance.xlsx\")\r\ndat<-as.data.frame(dat)\r\ndat<-gather(dat,c('2545':'2563'),key = \"year\",value = \"rate\")\r\ndat$year<-as.numeric(dat$year)   \r\nnames(dat)[1]<-\"level\"              \r\ndat2<-dat%>%filter(year>=2547 & level !=\"ร้อยละของนักเรียนในระบบต่อประชากรในวัยเรียน (%)**\"& level!=\"ปริญญาตรีและต่ำกว่า\")\r\n\r\n#สร้างทัศนภาพข้อมูล\r\nggplot(data = dat2, aes(x=year,y=rate,col=factor(level)))+\r\n    geom_line()+\r\n    theme_minimal()+\r\n    theme(text=element_text(family=\"ChulaCharasNew\", size=10, face=\"bold\"),\r\n          plot.title=element_text(family=\"ChulaCharasNew\", size=12, face=\"bold\"),\r\n          plot.caption=element_text(size=7),\r\n          plot.margin = margin(5,5,8,0,unit=\"pt\"),\r\n          legend.position = \"none\",\r\n          panel.grid.minor.x = element_blank(),\r\n          panel.grid.major.x = element_blank(),\r\n          panel.grid.major.y = element_blank(),\r\n          panel.grid.minor.y = element_blank()\r\n    )+\r\n    geom_vline(xintercept = c(2561,2562,2563), col=\"grey\",size=0.01,alpha=0.5)+\r\n    geom_text_repel(data=dat2%>%filter(year==2563),\r\n                    aes(label = level),\r\n                    family = \"ChulaCharasNew\",\r\n                    size = 3,\r\n                    direction = \"y\",\r\n                    xlim = c(2564, NA),\r\n                    hjust = 0,\r\n                    segment.size = .7,\r\n                    segment.alpha = .7,\r\n                    segment.linetype = \"dotted\",\r\n                    box.padding = .4,\r\n                    segment.curvature = -0.2,\r\n                    segment.ncp = 3,\r\n                    segment.angle = 20\r\n    )+\r\n    scale_x_continuous(expand=c(0,0),\r\n                       breaks=c(seq(2557,2560,3),seq(2561,2563, by=1)),\r\n                       limits=c(2557,2566))+\r\n    scale_y_continuous(breaks=c(0,25,50,75,100))+\r\n    geom_vline(xintercept = 2560, linetype=\"dotted\", col=\"grey\",size=0.5,alpha=0.5)+\r\n    geom_point(data=dat2%>%filter(year>=2560),\r\n              aes(x=year, y=rate, col=factor(level)))+\r\n    geom_vline(xintercept = 2557, linetype=\"dotted\", col=\"grey\")+\r\n    geom_hline(yintercept = 0, col=\"grey\", size=0.5)+\r\n    geom_text_repel(data=dat2%>%filter(year>=2560),\r\n                    aes(label=round(rate,1)),\r\n                    family = \"ChulaCharasNew\",size=3,\r\n                    )+\r\n    xlab(\"\")+ \r\n    ylab(\"\\nอัตราการเข้าเรียน\\n\")+\r\n    geom_segment(x=2560,y=0,xend=2566,yend=0,\r\n                 arrow=arrow(type=\"open\",length=unit(0.2,\"cm\")),col=\"black\",size=0.7)+\r\n    geom_segment(x=2557,y=0,xend=2560,yend=0,\r\n             col=\"white\")+\r\n    geom_point(aes(x=2560,y=0),shape=16,size=3,col=\"black\")+\r\n    annotate(geom = \"rect\", xmin = 2562.8, xmax = Inf, ymin = 0,ymax = Inf,\r\n             fill = \"grey\", alpha = 0.2)+\r\n    annotate(geom=\"text\",x=2558.5, y=0, label=\"ก่อนดำเนินงานตามแผนการศึกษาแห่งชาติ ฯ\",\r\n             family=\"ChulaCharasNew\", size=2.5, vjust=-1, fontface=\"bold\")+\r\n    annotate(geom=\"text\",x=2561.3, y=0, label=\"ระหว่างดำเนินงานตามแผนการศึกษาแห่งชาติ ฯ\",\r\n             family=\"ChulaCharasNew\", size=2.5, vjust=-1, fontface=\"bold\")+\r\n    annotate(geom=\"text\",x=2563.8, y=0, label=\"13 ม.ค. 63 เริ่มมีการระบาดของ\",\r\n             family=\"ChulaCharasNew\", size=2.5, vjust=-2.75)+\r\n    annotate(geom=\"text\",x=2563.8, y=0, label=\"COVID-19 ในประเทศไทย\",\r\n         family=\"ChulaCharasNew\", size=2.5, vjust=-1)+\r\n    labs(caption = \"ที่มา: สถิติการศึกษา สำนักงานปลัดกระทรวงศึกษาธิการ\")\r\n\r\n\r\n\r\n\r\n\r\n\r\n",
+    "preview": "posts/2022-10-27-ggplot2attendancerate/ggplot2attendancerate_files/figure-html5/unnamed-chunk-1-1.png",
+    "last_modified": "2022-10-28T10:47:56+07:00",
+    "input_file": {}
+  },
+  {
+    "path": "posts/2022-10-27-rmarkdownreport/",
+    "title": "รายงานการวิเคราะห์ข้อมูลโดยใช้ R Markdown",
+    "description": "รายงานผลการวิเคราะห์เปรียบเทียบคะแนนเฉลี่ยความเครียดในการเรียนและความยึดมั่นผูกพันกับการเรียน ระหว่างกลุ่มนักเรียนที่มีความสามารถในการใช้เทคโนโลยีหรืออุปกรณ์ IT ของผู้เรียนแตกต่างกัน",
+    "author": [
+      {
+        "name": "Kritsadee Siriruang",
+        "url": {}
+      }
+    ],
+    "date": "2022-10-27",
+    "categories": [],
+    "contents": "\r\nจากบทเรียนการใช้ R Markdown ได้รับโจทย์ให้วิเคราะห์เปรียบเทียบคะแนนเฉลี่ยความเครียดในการเรียนและความยึดมั่นผูกพันกับการเรียน ระหว่างกลุ่มนักเรียนที่มีความสามารถในการใช้เทคโนโลยีหรืออุปกรณ์ IT ของผู้เรียนแตกต่างกันและแปลผลการวิเคราะห์แล้วจัดทำรายงานในรูปแบบของเอกสาร R Markdown ได้มีการจัดทำแล้วเผยแพร่รายงานผลการวิเคราะห์บน Rpubs ตามลิงก์ด้านล่างนี้\r\n\r\nรายงานผลการวิเคราะห์ข้อมูล\r\n \r\n\r\n\r\n\r\n\r\n\r\n",
+    "preview": "posts/2022-10-27-rmarkdownreport/rpubs.jpg",
+    "last_modified": "2022-10-28T10:48:29+07:00",
+    "input_file": {}
+  },
+  {
+    "path": "posts/2022-10-27-tableauattendancerate/",
+    "title": "สร้างทัศนภาพข้อมูลโดยใช้ tableau: อัตราการเข้าเรียน",
+    "description": "ผลงานการสร้างทัศนภาพข้อมูลโดยใช้ tableau นำเสนออัตราการเข้าเรียนของนักเรียนในแต่ละระดับการศึกษาจำแนกตามระดับชั้นและรายปี",
+    "author": [
+      {
+        "name": "Kritsadee Siriruang",
+        "url": {}
+      }
+    ],
+    "date": "2022-10-27",
+    "categories": [
+      "Data Visualiztion"
+    ],
+    "contents": "\r\nจากบทเรียนของการสร้างทัศนภาพข้อมูลโดยใช้ tableau ซึ่งเป็นโปรแกรมสำเร็จรูป และได้ลองทำแบบฝึกหัดโดยใช้ชุดข้อมูลอัตราการเข้าเรียน แสดงได้ดังนี้\r\n \r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\nข้อสังเกต\r\n \r\nข้อสังเกตที่ได้จาการสร้างทัศนภาพข้อมูลเดียวกันโดยใช้ ggplot2 และ tableau พบว่า การสร้างใน tableau สามารถทำได้ง่ายจากการคลิกเลือกสิ่งต่าง ๆ ที่ต้องการแสดง แต่ข้อมูลต้องผ่านการจัดกระทำมาให้เรียบร้อยก่อนจากโปรแกรมอื่น ๆ ส่วนการสร้างโดยใช้ ggplot2 พบว่า สามารถปรับแต่งได้หลากหลายกว่า แต่ต้องเขียนคำสั่งที่ซับซ้อนในการสร้างองค์ประกอบต่าง ๆ ของทัศนภาพขึ้นมาประกอบกัน\r\n\r\n\r\n\r\n",
+    "preview": "posts/2022-10-27-tableauattendancerate/featured.jpg",
+    "last_modified": "2022-10-28T10:49:15+07:00",
+    "input_file": {}
+  }
+]
